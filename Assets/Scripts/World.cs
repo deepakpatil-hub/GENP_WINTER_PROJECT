@@ -9,6 +9,9 @@ public class World : MonoBehaviour {
     public int waterThreshold = 50;
     public float noiseScale = 0.03f;
     public GameObject chunkPrefab;
+    public Vector2Int mapSeedOffset;
+
+    public TerrainGenerator terrainGenerator;
 
     Dictionary<Vector3Int, ChunkData> chunkDataDictionary = new Dictionary<Vector3Int, ChunkData>();
     Dictionary<Vector3Int, ChunkRenderer> chunkDictionary = new Dictionary<Vector3Int, ChunkRenderer>();
@@ -24,7 +27,8 @@ public class World : MonoBehaviour {
             for (int z = 0; z < mapSizeInChunks; z++) {
 
                 ChunkData data = new ChunkData(chunkSize,chunkHeight, this,new Vector3Int(x*chunkSize,0,z*chunkSize));
-                GenerateVoxels(data);
+                //GenerateVoxels(data);
+                ChunkData newData = terrainGenerator.GenerateChunkData(data, mapSeedOffset);
                 chunkDataDictionary.Add(data.worldPosition,data);
             }
         }
@@ -40,30 +44,7 @@ public class World : MonoBehaviour {
     }
 
     private void GenerateVoxels(ChunkData chunkData) {
-        for (int x = 0; x < chunkSize; x++) {
-            for (int z = 0; z < chunkSize; z++) {
-                float noiseValue = Mathf.PerlinNoise((chunkData.worldPosition.x + x) * noiseScale, (chunkData.worldPosition.z + z) * noiseScale);
-                int groundPosition = Mathf.RoundToInt(noiseValue * chunkHeight);
-
-                for (int y = 0; y < chunkHeight; y++) {
-                    BlockType voxelType = BlockType.Dirt;
-                    if (y > groundPosition) {
-                        if (y < waterThreshold) {
-                            voxelType = BlockType.Water;
-                        }
-                        else {
-                            voxelType = BlockType.Air;
-                        }
-                    }
-                    else if (y == groundPosition) {
-                        voxelType = BlockType.Grass_Dirt;
-                    }
-                    Chunk.SetBlock(chunkData, new Vector3Int(x, y, z), voxelType);
-                }
-
-
-            }
-        }
+        
     }
 
     public BlockType GetBlockFromChunkCoordinates(ChunkData chunkData, int x, int y, int z) { 
